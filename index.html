@@ -372,17 +372,109 @@
                 </div>
             </div>
 
-            <!-- VIEW: IMPORTAÇÃO (DUIMP) - Placeholder -->
+            <!-- VIEW: IMPORTAÇÃO (DUIMP) -->
             <div id="view-importacao" class="page-view animate-fade-in hidden">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-                        <i class="fa-solid fa-file-import text-3xl"></i>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+                    <div class="border-b border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gov-dark flex items-center">
+                            <i class="fa-solid fa-file-invoice-dollar text-gov-blue mr-3"></i> Composição do Valor Aduaneiro e Tributos
+                        </h3>
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">SIMULAÇÃO DIDÁTICA</span>
                     </div>
-                    <h3 class="text-xl font-medium text-gray-800 mb-2">Módulo de Importação (DUIMP)</h3>
-                    <p class="text-gray-500 max-w-md mx-auto mb-6">O simulador para Declaração Única de Importação está em desenvolvimento. Atualmente o foco acadêmico desta simulação está na Exportação (DU-E).</p>
-                    <button onclick="switchTab('exportacao')" class="px-4 py-2 bg-gov-blue text-white text-sm font-medium rounded hover:bg-gov-dark transition-colors">
-                        Ir para Exportação
-                    </button>
+                    
+                    <div class="p-6 md:p-8">
+                        <p class="text-sm text-gray-500 mb-6 pb-4 border-b border-gray-100">*Taxa de conversão Siscomex simulada: USD 1,00 = R$ 5,00</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="valMercadoria">Valor da Mercadoria - Cost (US$)</label>
+                                <input type="number" id="valMercadoria" placeholder="Ex: 50000.00" step="0.01"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="valFrete">Valor do Frete - Freight (US$)</label>
+                                <input type="number" id="valFrete" placeholder="Ex: 2000.00" step="0.01"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="valSeguro">Valor do Seguro - Insurance (US$)</label>
+                                <input type="number" id="valSeguro" placeholder="Ex: 500.00" step="0.01"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
+                            <button type="button" onclick="calcularTributosDUIMP()" class="px-5 py-2 text-sm font-medium text-white bg-gov-blue rounded-md hover:bg-gov-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue transition-colors flex items-center shadow-sm">
+                                <i class="fa-solid fa-calculator mr-2"></i> Calcular Tributos e Registrar
+                            </button>
+                        </div>
+
+                        <!-- Result Table (Hidden initially) -->
+                        <div id="duimp-resultado" class="hidden mt-8">
+                            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-md mb-6">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fa-solid fa-check-circle text-green-500"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-green-800">DUIMP Simulada com Sucesso!</h3>
+                                        <div class="mt-1 text-sm text-green-700">
+                                            <p>Veja abaixo o detalhamento fiscal (composição da base de cálculo e impostos federais incidentes).</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="overflow-x-auto border border-gray-200 rounded-md">
+                                <table class="w-full text-left text-sm text-gray-600">
+                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                                        <tr>
+                                            <th class="px-6 py-3 font-medium">Rubrica</th>
+                                            <th class="px-6 py-3 font-medium">Base de Cálculo</th>
+                                            <th class="px-6 py-3 font-medium">Alíquota</th>
+                                            <th class="px-6 py-3 font-medium">Valor Calculado (R$)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr class="bg-white">
+                                            <td class="px-6 py-4 font-medium text-gray-800">Valor Aduaneiro (CIF em Reais)</td>
+                                            <td class="px-6 py-4">Mercadoria + Frete + Seguro</td>
+                                            <td class="px-6 py-4">Tx. R$ 5,00</td>
+                                            <td id="res-va" class="px-6 py-4 font-bold text-gov-blue">R$ 0,00</td>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <td class="px-6 py-4">Imposto de Importação (II)</td>
+                                            <td class="px-6 py-4">Valor Aduaneiro</td>
+                                            <td class="px-6 py-4">10,00%</td>
+                                            <td id="res-ii" class="px-6 py-4">R$ 0,00</td>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <td class="px-6 py-4">IPI</td>
+                                            <td class="px-6 py-4">Valor Aduaneiro + II</td>
+                                            <td class="px-6 py-4">15,00%</td>
+                                            <td id="res-ipi" class="px-6 py-4">R$ 0,00</td>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <td class="px-6 py-4">PIS-Importação</td>
+                                            <td class="px-6 py-4">Valor Aduaneiro</td>
+                                            <td class="px-6 py-4">2,10%</td>
+                                            <td id="res-pis" class="px-6 py-4">R$ 0,00</td>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <td class="px-6 py-4">COFINS-Importação</td>
+                                            <td class="px-6 py-4">Valor Aduaneiro</td>
+                                            <td class="px-6 py-4">9,65%</td>
+                                            <td id="res-cofins" class="px-6 py-4">R$ 0,00</td>
+                                        </tr>
+                                        <tr class="bg-gray-50">
+                                            <td colspan="3" class="px-6 py-4 text-right font-bold text-gray-700">Custo Total dos Impostos Federais:</td>
+                                            <td id="res-total" class="px-6 py-4 font-bold text-lg text-gov-blue">R$ 0,00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -505,6 +597,45 @@
             
             // Reset form for next entry
             form.reset();
+        }
+
+        // Função para calcular impostos da DUIMP
+        function calcularTributosDUIMP() {
+            // Capturar os valores inseridos
+            let mercadoria = parseFloat(document.getElementById('valMercadoria').value) || 0;
+            let frete = parseFloat(document.getElementById('valFrete').value) || 0;
+            let seguro = parseFloat(document.getElementById('valSeguro').value) || 0;
+            
+            let taxaCambio = 5.00;
+
+            // Cálculos
+            let valorCIFDolar = mercadoria + frete + seguro;
+            let valorAduaneiro = valorCIFDolar * taxaCambio; // Convertido para BRL
+            
+            let ii = valorAduaneiro * 0.10; // 10%
+            let baseIPI = valorAduaneiro + ii;
+            let ipi = baseIPI * 0.15; // 15%
+            let pis = valorAduaneiro * 0.021; // 2.10%
+            let cofins = valorAduaneiro * 0.0965; // 9.65%
+            
+            let totalTributos = ii + ipi + pis + cofins;
+
+            // Atualizar os valores na tabela com formatação BRL
+            const formatBRL = (valor) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            document.getElementById('res-va').innerText = formatBRL(valorAduaneiro);
+            document.getElementById('res-ii').innerText = formatBRL(ii);
+            document.getElementById('res-ipi').innerText = formatBRL(ipi);
+            document.getElementById('res-pis').innerText = formatBRL(pis);
+            document.getElementById('res-cofins').innerText = formatBRL(cofins);
+            document.getElementById('res-total').innerText = formatBRL(totalTributos);
+
+            // Mostrar a tabela de resultados
+            document.getElementById('duimp-resultado').classList.remove('hidden');
+            
+            // Gerar protocolo fictício para DUIMP
+            const protocol = '26BR' + Math.floor(100000000 + Math.random() * 900000000);
+            showToast(`DUIMP simulada com sucesso! Protocolo: ${protocol}`);
         }
 
         // Toast Logic

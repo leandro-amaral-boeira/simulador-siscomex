@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador - Portal Único SISCOMEX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        gov: {
+                            blue: '#00427A',
+                            dark: '#002B50',
+                            light: '#E6F0FA',
+                            green: '#009B3A',
+                            yellow: '#FEDF00'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #FEDF00;
+        }
+        .nav-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-item:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid rgba(254, 223, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden font-sans">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gov-blue text-white flex-shrink-0 flex flex-col hidden md:flex z-20 shadow-xl relative">
+        <!-- Top Brazilian Flag Accents -->
+        <div class="absolute top-0 left-0 w-full h-1 flex">
+            <div class="h-full bg-gov-green w-1/2"></div>
+            <div class="h-full bg-gov-yellow w-1/2"></div>
+        </div>
+
+        <div class="p-6 border-b border-white/10 mt-1">
+            <div class="flex items-center space-x-3 mb-2">
+                <i class="fa-solid fa-ship text-2xl text-gov-yellow"></i>
+                <h1 class="text-xl font-bold leading-tight">Simulador<br><span class="text-sm font-normal text-gov-yellow">SISCOMEX Acadêmico</span></h1>
+            </div>
+            <p class="text-xs text-blue-200 mt-2">Ambiente de Treinamento</p>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active w-full text-left px-6 py-3 flex items-center space-x-3 text-sm font-medium focus:outline-none">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                        <span>Painel Inicial</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('exportacao')" id="nav-exportacao" class="nav-item w-full text-left px-6 py-3 flex items-center space-x-3 text-sm font-medium focus:outline-none">
+                        <i class="fa-solid fa-file-export w-5 text-center"></i>
+                        <span>Exportação (DU-E)</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('importacao')" id="nav-importacao" class="nav-item w-full text-left px-6 py-3 flex items-center space-x-3 text-sm font-medium focus:outline-none">
+                        <i class="fa-solid fa-file-import w-5 text-center"></i>
+                        <span>Importação (DUIMP)</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('catalogo')" id="nav-catalogo" class="nav-item w-full text-left px-6 py-3 flex items-center space-x-3 text-sm font-medium focus:outline-none">
+                        <i class="fa-solid fa-box-open w-5 text-center"></i>
+                        <span>Catálogo de Produtos</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-white/10">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <i class="fa-solid fa-user text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium">Prof. Coordenador</p>
+                    <p class="text-xs text-blue-200">Sair <i class="fa-solid fa-sign-out-alt ml-1"></i></p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-gov-blue text-white p-4 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-ship text-gov-yellow"></i>
+                <span class="font-bold text-lg">SISCOMEX</span>
+            </div>
+            <button class="text-white focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Topbar Desktop -->
+        <header class="bg-white shadow-sm h-16 hidden md:flex items-center justify-between px-8 z-10 border-b border-gray-200">
+            <h2 id="page-title" class="text-lg font-semibold text-gray-700">Painel Inicial</h2>
+            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                <span class="flex items-center"><i class="fa-regular fa-clock mr-2"></i> Sessão: 29:45</span>
+                <span class="flex items-center"><i class="fa-solid fa-circle-info mr-2 text-gov-blue"></i> Ambiente de Simulação</span>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 relative">
+            
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="page-view animate-fade-in block">
+                <div class="mb-6">
+                    <p class="text-gray-500 text-sm">Bem-vindo ao Portal Único de Comércio Exterior (Ambiente Acadêmico).</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stat 1 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-gov-light rounded-bl-full -mr-8 -mt-8"></div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Total Exportado (Mês)</h3>
+                        <p class="text-2xl font-bold text-gray-800">US$ 12.450.000</p>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-gov-green flex items-center font-medium"><i class="fa-solid fa-arrow-up mr-1"></i> 4.5%</span>
+                            <span class="text-gray-400 ml-2">vs mês anterior</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Stat 2 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-gov-light rounded-bl-full -mr-8 -mt-8"></div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Total Importado (Mês)</h3>
+                        <p class="text-2xl font-bold text-gray-800">US$ 8.230.500</p>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-red-500 flex items-center font-medium"><i class="fa-solid fa-arrow-down mr-1"></i> 1.2%</span>
+                            <span class="text-gray-400 ml-2">vs mês anterior</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat 3 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-gov-light rounded-bl-full -mr-8 -mt-8"></div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">DU-E Ativas</h3>
+                        <p class="text-2xl font-bold text-gray-800">142</p>
+                        <div class="mt-4 flex items-center text-sm text-gray-500">
+                            Aguardando desembaraço
+                        </div>
+                    </div>
+
+                    <!-- Stat 4 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-gov-light rounded-bl-full -mr-8 -mt-8"></div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Tempo Méd. Liberação</h3>
+                        <p class="text-2xl font-bold text-gray-800">2.4 dias</p>
+                        <div class="mt-4 flex items-center text-sm text-gray-500">
+                            Média geral do semestre
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Table -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-700">Operações Recentes</h3>
+                        <button class="text-sm text-gov-blue font-medium hover:underline">Ver todas</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-600">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                                <tr>
+                                    <th class="px-6 py-3 font-medium">Protocolo</th>
+                                    <th class="px-6 py-3 font-medium">Tipo</th>
+                                    <th class="px-6 py-3 font-medium">Status</th>
+                                    <th class="px-6 py-3 font-medium">Data</th>
+                                    <th class="px-6 py-3 font-medium text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-gray-800">23BR0001234567</td>
+                                    <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">DU-E</span></td>
+                                    <td class="px-6 py-4">
+                                        <span class="flex items-center text-gov-green"><div class="w-2 h-2 rounded-full bg-gov-green mr-2"></div> Desembaraçada</span>
+                                    </td>
+                                    <td class="px-6 py-4">12/10/2026</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <button class="text-gray-400 hover:text-gov-blue"><i class="fa-solid fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-gray-800">23BR0009876543</td>
+                                    <td class="px-6 py-4"><span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium">DUIMP</span></td>
+                                    <td class="px-6 py-4">
+                                        <span class="flex items-center text-yellow-600"><div class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div> Em Análise Fiscal</span>
+                                    </td>
+                                    <td class="px-6 py-4">10/10/2026</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <button class="text-gray-400 hover:text-gov-blue"><i class="fa-solid fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-gray-800">23BR0005554443</td>
+                                    <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">DU-E</span></td>
+                                    <td class="px-6 py-4">
+                                        <span class="flex items-center text-gray-500"><div class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div> Rascunho</span>
+                                    </td>
+                                    <td class="px-6 py-4">09/10/2026</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <button class="text-gray-400 hover:text-gov-blue"><i class="fa-solid fa-pen"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: EXPORTAÇÃO (DU-E) -->
+            <div id="view-exportacao" class="page-view animate-fade-in hidden">
+                
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+                    <div class="border-b border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gov-dark flex items-center">
+                            <i class="fa-solid fa-file-signature text-gov-blue mr-3"></i> Nova Declaração Única de Exportação (DU-E)
+                        </h3>
+                        <span class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">RASCUNHO</span>
+                    </div>
+                    
+                    <div class="p-6 md:p-8">
+                        <!-- Mock Form -->
+                        <form id="due-form" onsubmit="submitForm(event)">
+                            
+                            <!-- Section: Dados do Exportador -->
+                            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">1. Identificação do Exportador</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="cnpj">CNPJ do Exportador <span class="text-red-500">*</span></label>
+                                    <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0001-00" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="razao">Razão Social</label>
+                                    <input type="text" id="razao" name="razao" placeholder="Preenchimento automático" disabled
+                                        class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-md text-gray-500 text-sm cursor-not-allowed">
+                                </div>
+                            </div>
+
+                            <!-- Section: Dados da Operação -->
+                            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">2. Dados da Operação e Mercadoria</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="ncm">NCM (Classificação Fiscal) <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <input type="text" id="ncm" name="ncm" placeholder="Ex: 0901.11.10" required pattern="\d{4}\.\d{2}\.\d{2}"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                                        <button type="button" class="absolute right-2 top-2 text-gray-400 hover:text-gov-blue" title="Consultar NCM">
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">Formato: 0000.00.00</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="destino">País de Destino <span class="text-red-500">*</span></label>
+                                    <select id="destino" name="destino" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm bg-white">
+                                        <option value="">Selecione um país...</option>
+                                        <option value="AR">Argentina</option>
+                                        <option value="CN">China</option>
+                                        <option value="US">Estados Unidos</option>
+                                        <option value="NL">Países Baixos</option>
+                                        <option value="PT">Portugal</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="incoterm">Incoterm <span class="text-red-500">*</span></label>
+                                    <select id="incoterm" name="incoterm" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm bg-white">
+                                        <option value="">Selecione...</option>
+                                        <option value="EXW">EXW - Ex Works</option>
+                                        <option value="FOB">FOB - Free on Board</option>
+                                        <option value="CIF">CIF - Cost, Insurance and Freight</option>
+                                        <option value="DDP">DDP - Delivered Duty Paid</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="valor">Valor Aduaneiro (US$) <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-gray-500 text-sm">$</span>
+                                        <input type="number" id="valor" name="valor" placeholder="0.00" step="0.01" min="0" required
+                                            class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1" for="peso">Peso Líquido (KG) <span class="text-red-500">*</span></label>
+                                    <input type="number" id="peso" name="peso" placeholder="0.000" step="0.001" min="0" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-8">
+                                <label class="block text-sm font-medium text-gray-700 mb-1" for="descricao">Descrição Detalhada da Mercadoria <span class="text-red-500">*</span></label>
+                                <textarea id="descricao" name="descricao" rows="3" required placeholder="Descreva a mercadoria conforme documentação comercial..."
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gov-blue focus:border-gov-blue outline-none transition-shadow text-sm resize-none"></textarea>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
+                                <button type="button" onclick="document.getElementById('due-form').reset()" class="px-5 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-colors">
+                                    Limpar Rascunho
+                                </button>
+                                <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-gov-blue rounded-md hover:bg-gov-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue transition-colors flex items-center shadow-sm">
+                                    <i class="fa-solid fa-check mr-2"></i> Salvar e Registrar DU-E
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Guidance Alert -->
+                <div class="bg-blue-50 border-l-4 border-gov-blue p-4 rounded-r-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fa-solid fa-circle-info text-gov-blue"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gov-dark">Informação ao Aluno</h3>
+                            <div class="mt-1 text-sm text-gov-blue/80">
+                                <p>Este formulário simula a elaboração de uma Declaração Única de Exportação. Em um ambiente real, a integração com a nota fiscal eletrônica preencheria a maioria destes dados automaticamente.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: IMPORTAÇÃO (DUIMP) - Placeholder -->
+            <div id="view-importacao" class="page-view animate-fade-in hidden">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                        <i class="fa-solid fa-file-import text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-800 mb-2">Módulo de Importação (DUIMP)</h3>
+                    <p class="text-gray-500 max-w-md mx-auto mb-6">O simulador para Declaração Única de Importação está em desenvolvimento. Atualmente o foco acadêmico desta simulação está na Exportação (DU-E).</p>
+                    <button onclick="switchTab('exportacao')" class="px-4 py-2 bg-gov-blue text-white text-sm font-medium rounded hover:bg-gov-dark transition-colors">
+                        Ir para Exportação
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW: CATÁLOGO DE PRODUTOS - Placeholder -->
+            <div id="view-catalogo" class="page-view animate-fade-in hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-gray-600">Gerencie os produtos da sua empresa operador base.</p>
+                    <button class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors shadow-sm flex items-center">
+                        <i class="fa-solid fa-plus mr-2"></i> Novo Produto
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <table class="w-full text-left text-sm text-gray-600">
+                        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                            <tr>
+                                <th class="px-6 py-3 font-medium">Código Interno</th>
+                                <th class="px-6 py-3 font-medium">NCM</th>
+                                <th class="px-6 py-3 font-medium">Descrição Resumida</th>
+                                <th class="px-6 py-3 font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">PROD-001</td>
+                                <td class="px-6 py-4 font-medium">0901.11.10</td>
+                                <td class="px-6 py-4">Café não torrado, não descafeinado, em grãos</td>
+                                <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Ativo</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">PROD-002</td>
+                                <td class="px-6 py-4 font-medium">1001.99.00</td>
+                                <td class="px-6 py-4">Trigo e mistura de trigo com centeio</td>
+                                <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Ativo</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Custom Toast Notification (Replaces window.alert) -->
+    <div id="toast-notification" class="fixed bottom-4 right-4 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-white border-l-4 border-gov-green shadow-lg rounded-md p-4 flex items-start space-x-3 w-80">
+            <div class="flex-shrink-0 text-gov-green mt-0.5">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-gray-800">Sucesso</h4>
+                <p id="toast-message" class="text-sm text-gray-600 mt-1">Operação realizada com sucesso.</p>
+            </div>
+            <button onclick="hideToast()" class="ml-auto text-gray-400 hover:text-gray-600 pointer-events-auto">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Page Titles mapping
+        const pageTitles = {
+            'dashboard': 'Painel Inicial',
+            'exportacao': 'Módulo de Exportação (DU-E)',
+            'importacao': 'Módulo de Importação (DUIMP)',
+            'catalogo': 'Catálogo de Produtos'
+        };
+
+        // Function to switch tabs
+        function switchTab(tabId) {
+            // 1. Hide all views
+            const views = document.querySelectorAll('.page-view');
+            views.forEach(view => {
+                view.classList.add('hidden');
+                view.classList.remove('block');
+            });
+
+            // 2. Remove active class from all nav items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 3. Show selected view
+            const selectedView = document.getElementById('view-' + tabId);
+            if(selectedView) {
+                selectedView.classList.remove('hidden');
+                selectedView.classList.add('block');
+            }
+
+            // 4. Add active class to selected nav item
+            const selectedNav = document.getElementById('nav-' + tabId);
+            if(selectedNav) {
+                selectedNav.classList.add('active');
+            }
+
+            // 5. Update Header Title
+            const titleElement = document.getElementById('page-title');
+            if(titleElement && pageTitles[tabId]) {
+                titleElement.innerText = pageTitles[tabId];
+            }
+        }
+
+        // Form Submit Handler
+        function submitForm(event) {
+            event.preventDefault(); // Prevents page reload
+            
+            // Basic validation check (though HTML5 'required' handles most of it)
+            const form = event.target;
+            if(!form.checkValidity()) {
+                return;
+            }
+
+            // Generate a fake protocol number
+            const protocol = '26BR' + Math.floor(100000000 + Math.random() * 900000000);
+            
+            // Show custom success toast
+            showToast(`DU-E salva com sucesso! Protocolo: ${protocol}`);
+            
+            // Reset form for next entry
+            form.reset();
+        }
+
+        // Toast Logic
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.innerText = message;
+            
+            // Show toast
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            // Clear existing timeout if multiple triggers occur
+            if(toastTimeout) clearTimeout(toastTimeout);
+            
+            // Hide after 4 seconds
+            toastTimeout = setTimeout(() => {
+                hideToast();
+            }, 4000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast-notification');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }
+
+        // Optional: Simple CNPJ mask formatter logic on blur (for realism)
+        document.getElementById('cnpj').addEventListener('blur', function (e) {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length === 14) {
+                e.target.value = val.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+                document.getElementById('razao').value = "EMPRESA SIMULADA DE LOGÍSTICA S.A.";
+            } else if(val.length > 0) {
+                // Not perfectly 14 digits, just a visual feedback for simulation
+                 document.getElementById('razao').value = "CNPJ Inválido para Simulação";
+            }
+        });
+        
+    </script>
+</body>
+</html>
